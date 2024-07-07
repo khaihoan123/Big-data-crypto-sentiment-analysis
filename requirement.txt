@@ -1,2 +1,4 @@
 kafka-python==2.0.2
+kafka-python-ng==2.2.2
 praw==7.7.1
+pyspark==3.5.1
