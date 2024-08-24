@@ -1,6 +1,5 @@
 import praw
 import json
-
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka import KafkaProducer
 
@@ -12,9 +11,7 @@ reddit_config = {
     'password': "@Toilaai123",
     'username': "khaihoan123"
 }
-
 subreddit_list = 'CryptoCurrency+CryptoMoonShots+CryptoMarkets+CryptocurrencyICO'
-
 # create topic
 admin_client = KafkaAdminClient(
     bootstrap_servers="localhost:9092",
@@ -34,13 +31,9 @@ producer = KafkaProducer(
     value_serializer=lambda x: json.dumps(x).encode('utf-8')
 )
 
-# producer.send(topic_name, value={"Topic": "b", "Message": "Test"},)
-# producer.flush()
-
 reddit = praw.Reddit(**reddit_config)
 
 subreddit = reddit.subreddit(subreddit_list)
-
 
 for comment in subreddit.stream.comments(skip_existing=True):
     if comment is None:

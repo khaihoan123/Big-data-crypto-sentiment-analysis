@@ -39,13 +39,13 @@ schema = StructType([
         ])
 
 schema_2 = StructType([
-        StructField("x", LongType()),
-        StructField("o", StringType()),
-        StructField("h", StringType()),
-        StructField("l", StringType()),
-        StructField("c", StringType()),
+        StructField("open_time", LongType()),
+        StructField("open", StringType()),
+        StructField("high", StringType()),
+        StructField("low", StringType()),
+        StructField("close", StringType()),
         StructField("volume", StringType()),
-        StructField("closetime", LongType()),
+        StructField("close_time", LongType()),
         StructField("num_trade", IntegerType()),
         ])
 

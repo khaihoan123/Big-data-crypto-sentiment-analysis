@@ -17,24 +17,24 @@ db = client['crypto']
 reddit_collection = db['reddit']
 price_collection = db['btcusdt']
 
-# btc_keywords = ['bitcoin', 'btc', 'bitcoin price', 'btc price']
+btc_keywords = "btc|bitcoin"
+timedelta_query = 24
 client = Spot()
 
-# spark = SparkSession.builder.appName("analyse").getOrCreate()
-columns = [
-    'x',
-    'o', 
-    'h', 
-    'l', 
-    'c', 
-    'volume',
-    "closetime",
-    "quote_asset_volume",
-    "num_trade",
-    "taker_buy_base",
-    "taker_buy_qoute",
-    "unused",
-    ]
+# columns = [
+#     'x',
+#     'o', 
+#     'h', 
+#     'l', 
+#     'c', 
+#     'volume',
+#     "closetime",
+#     "quote_asset_volume",
+#     "num_trade",
+#     "taker_buy_base",
+#     "taker_buy_qoute",
+#     "unused",
+#     ]
 
 def recursive_forecast(model, data, look_back, n_steps):
     forecast = []
@@ -53,27 +53,37 @@ def recursive_forecast(model, data, look_back, n_steps):
 @app.route("/")
 def home():
     url_for('static', filename='style.css')
-    klines = client.klines("BTCUSDT", "5m", limit=576)
-    df = pd.DataFrame(columns=columns, data=klines)
-    
-    df['h'] = pd.to_numeric(df['h'] )
-    df['o'] = pd.to_numeric(df['o'] )
-    df['l'] = pd.to_numeric(df['l'] )
-    df['c'] = pd.to_numeric(df['c'] )
-    df['DateHour'] = pd.to_datetime(df['x'], unit='ms').dt.floor(freq='5min')
+    # klines = client.klines("BTCUSDT", "5m", limit=576)
+    # df = pd.DataFrame(columns=columns, data=klines)
+
+    #BTC query
+    btc_query = {
+        'open_time':{'$lt':datetime.utcnow().timestamp() * 1000, '$gt':( datetime.utcnow() - timedelta(hours=timedelta_query)).timestamp() * 1000},
+    }
+    df = pd.DataFrame(price_collection.find(btc_query))
+    if df.empty:
+        return 'DataFrame is empty!'
+    else:
+        df['x'] = df['open_time']
+        df['h'] = pd.to_numeric(df['high'] )
+        df['o'] = pd.to_numeric(df['open'] )    
+        df['l'] = pd.to_numeric(df['low'] )
+        df['c'] = pd.to_numeric(df['close'] )
+        df['DateHour'] = pd.to_datetime(df['x'], unit='ms').dt.floor(freq='1min')
 
 
-    myquery = {
-        'created_utc':{'$lt':datetime.now().timestamp(), '$gt':( datetime.utcnow() - timedelta(hours=48)).timestamp()},
-        "$or":[{"body": {'$regex' : "btc|bitcoin", '$options': "i"}, "submission_title": {'$regex' : "btc|bitcoin", '$options': "i"}}]
+    #query reddit sentiment data
+    reddit_query = {
+        'created_utc':{'$lt':datetime.utcnow().timestamp(), '$gt':( datetime.utcnow() - timedelta(hours=timedelta_query)).timestamp()},
+        "$or":[{"body": {'$regex' : btc_keywords, '$options': "i"}, "submission_title": {'$regex' : btc_keywords, '$options': "i"}}]
     }
 
-    reddit_df = pd.DataFrame(reddit_collection.find(myquery))
+    reddit_df = pd.DataFrame(reddit_collection.find(reddit_query))
     if reddit_df.empty:
         return 'DataFrame is empty!'
     else:
         reddit_df['created_utc'] = pd.to_datetime(reddit_df['created_utc'], unit='s')
-        reddit_df['DateHour'] = reddit_df['created_utc'].dt.floor(freq='5min')
+        reddit_df['DateHour'] = reddit_df['created_utc'].dt.floor(freq='1min')
         reddit_df['sentiment'] = reddit_df.apply(lambda x: TextBlob(x['submission_title'] + " " + x['body']).sentiment.polarity, axis=1)
         reddit_df = reddit_df.groupby('DateHour').agg(
             sentiment=('sentiment', 'mean'),
@@ -127,7 +137,6 @@ def home():
         'x': future_datetime,
         'y': predictions_unscaled,
     })
-    print(future_data)
 
     #prepare data
     predict_data =  merged_df['x'][look_back:].reset_index(drop=True)
