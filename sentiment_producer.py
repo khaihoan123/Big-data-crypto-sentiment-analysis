@@ -5,11 +5,11 @@ from kafka import KafkaProducer
 
 topic_name = 'reddit'
 reddit_config = {
-    'user_agent': 'test',
-    'client_id': 'SK33APXjmS-pVfsv_APmWg',
-    'client_secret': 'eWUVd7dLhMukZ9zJcpOgF78HT-jL0Q',
-    'password': "@Toilaai123",
-    'username': "khaihoan123"
+    'user_agent': 'example',
+    'client_id': 'example',
+    'client_secret': 'example',
+    'password': "example",
+    'username': "example"
 }
 subreddit_list = 'CryptoCurrency+CryptoMoonShots+CryptoMarkets+CryptocurrencyICO'
 # create topic
@@ -57,6 +57,3 @@ for comment in subreddit.stream.comments(skip_existing=True):
     print(comment_json)
     producer.send(topic_name, value=comment_json)
     producer.flush()
-
-# for sub in reddit.subreddit('CryptoCurrency').hot(limit=None):
-#     print(sub.title)

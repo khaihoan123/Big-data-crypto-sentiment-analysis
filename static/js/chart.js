@@ -100,8 +100,10 @@ var update = function() {
   var mixed = document.getElementById('mixed').value;
   if (mixed === 'true') {
     chart.config.data.datasets[1].hidden = false;
+    chart.config.data.datasets[2].hidden = false;
   } else {
     chart.config.data.datasets[1].hidden = true;
+    chart.config.data.datasets[2].hidden = true;
   }
 
   chart.update();

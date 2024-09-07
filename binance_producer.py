@@ -17,6 +17,8 @@ producer = KafkaProducer(
 
 def message_handler(message):
     
+    print('===========')
+    print('Api response')
     print(message)
     data = {
         'open_time': message[0][0],
@@ -28,7 +30,8 @@ def message_handler(message):
         "close_time": message[0][6],
         "num_trade": message[0][8],
     }
-
+    print('Data:')
+    print(data)
     producer.send(topic_name, value=data)
     producer.flush()
 

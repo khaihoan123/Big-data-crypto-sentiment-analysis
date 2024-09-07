@@ -7,6 +7,7 @@ from binance.spot import Spot
 from datetime import datetime, timedelta
 from textblob import TextBlob
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
 
@@ -18,23 +19,8 @@ reddit_collection = db['reddit']
 price_collection = db['btcusdt']
 
 btc_keywords = "btc|bitcoin"
-timedelta_query = 24
+timedelta_query = 48
 client = Spot()
-
-# columns = [
-#     'x',
-#     'o', 
-#     'h', 
-#     'l', 
-#     'c', 
-#     'volume',
-#     "closetime",
-#     "quote_asset_volume",
-#     "num_trade",
-#     "taker_buy_base",
-#     "taker_buy_qoute",
-#     "unused",
-#     ]
 
 def recursive_forecast(model, data, look_back, n_steps):
     forecast = []
@@ -53,8 +39,6 @@ def recursive_forecast(model, data, look_back, n_steps):
 @app.route("/")
 def home():
     url_for('static', filename='style.css')
-    # klines = client.klines("BTCUSDT", "5m", limit=576)
-    # df = pd.DataFrame(columns=columns, data=klines)
 
     #BTC query
     btc_query = {
@@ -84,7 +68,10 @@ def home():
     else:
         reddit_df['created_utc'] = pd.to_datetime(reddit_df['created_utc'], unit='s')
         reddit_df['DateHour'] = reddit_df['created_utc'].dt.floor(freq='1min')
+        print(reddit_df)
         reddit_df['sentiment'] = reddit_df.apply(lambda x: TextBlob(x['submission_title'] + " " + x['body']).sentiment.polarity, axis=1)
+        print('After sentiment Scoring')
+        print(reddit_df)
         reddit_df = reddit_df.groupby('DateHour').agg(
             sentiment=('sentiment', 'mean'),
             mention_nuber=('sentiment', 'count'),
@@ -95,7 +82,6 @@ def home():
     #train model
 
     # Scale combined data
-    # print(merged_df[['c', 'sentiment', 'DateHour']])
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_combined_data = scaler.fit_transform(merged_df[['c', 'sentiment']].values)
 
@@ -121,12 +107,17 @@ def home():
 
     predicted_prices = model.predict(X)
     predicted_prices = scaler.inverse_transform(np.concatenate((predicted_prices, np.zeros((predicted_prices.shape[0], 1))), axis=1))[:, 0]
+    actual_prices = merged_df[['c']].to_numpy()[look_back:, 0]
+    print(actual_prices)
+    print(predicted_prices)
+    mse = mean_squared_error(actual_prices, predicted_prices)
+    print(f"Mean Squared Error (MSE): {mse}")
+    mape = mean_absolute_percentage_error(actual_prices, predicted_prices)
+    print(f"Mean Absolute Percentage Error (MAPE): {mape}%")
 
     #predict future price
     n_steps = 10  # Number of future steps to predict
     future_predictions = recursive_forecast(model, scaled_combined_data, look_back, n_steps)
-    # print(merged_df['DateHour'])
-    # last_datetime = pd.to_datetime()
     future_datetime = [merged_df['x'].iloc[-1] + i*5*60*1000 for i in range(1, n_steps + 1)]
     dummy_zero_array = np.zeros((len(future_predictions), scaled_combined_data.shape[1] - 1))
     predictions_full = np.concatenate((np.array(future_predictions).reshape(-1, 1), dummy_zero_array), axis=1)
@@ -144,7 +135,6 @@ def home():
     predict_data = predict_data.assign(y=pd.Series(predicted_prices).values)
     # print(predict_data)
     coin_candlestick_data = merged_df[['x', 'o', 'h', 'l', 'c', 'volume']].to_dict(orient='records')
-    # coin_line_data = merged_df[['x', 'c']].rename(columns={"c": "y"}).to_dict(orient='records') 
     coin_line_data = predict_data.to_dict(orient='records') 
     sentiment_data = merged_df[['x', 'sentiment']].rename(columns={"sentiment": "y"}).to_dict(orient='records')
     future_data = future_data.to_dict(orient='records')

@@ -3,70 +3,7 @@ version: '0.2'
 networks:
     datapipeline:
         driver: bridge
-
 services:
-  # spark:
-  #   image: bitnami/spark:3.5.1
-  #   container_name: spark_master
-  #   environment:
-  #     - SPARK_MODE=master
-  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
-  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
-  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-  #     - SPARK_SSL_ENABLED=no
-  #     - SPARK_USER=spark
-  #   ports:
-  #     - '8080:8080'
-  #     - '7077:7077'
-  #   networks:
-  #     - datapipeline
-  # spark-worker:
-  #   image: bitnami/spark:3.5.1
-  #   container_name: spark_worker
-  #   ports: 
-  #     - "8081:8081"
-  #   environment:
-  #     - SPARK_MODE=worker
-  #     - SPARK_MASTER_URL=spark://spark:7077
-  #     - SPARK_WORKER_MEMORY=1G      #<--- adjust accordingly
-  #     - SPARK_WORKER_CORES=1
-  #     - SPARK_RPC_AUTHENTICATION_ENABLED=no
-  #     - SPARK_RPC_ENCRYPTION_ENABLED=no
-  #     - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-  #     - SPARK_SSL_ENABLED=no
-  #     - SPARK_USER=spark
-  #   networks:
-  #     - datapipeline
-  # zookeeper:
-  #   image: confluentinc/cp-zookeeper
-  #   container_name: zookeeper
-  #   networks:
-  #     - datapipeline
-  #   environment:
-  #     ZOOKEEPER_CLIENT_PORT: 2181
-  #     ZOOKEEPER_TICK_TIME: 2000
-
-  # kafka:
-  #   image: confluentinc/cp-kafka
-  #   container_name: kafka
-  #   depends_on:
-  #     - zookeeper
-  #   networks:
-  #     - datapipeline
-  #   ports:
-  #     - 9092:9092
-  #     - 29092:29092
-  #   environment:
-  #     KAFKA_BROKER_ID: 1
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  #     KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
-  #     KAFKA_LISTENERS: PLAINTEXT://:29092,PLAINTEXT_HOST://:9092
-  #     ALLOW_PLAINTEXT_LISTENER: "yes"
   kafka:
     image: apache/kafka:latest
     networks:
