@@ -19,7 +19,7 @@ reddit_collection = db['reddit']
 price_collection = db['btcusdt']
 
 btc_keywords = "btc|bitcoin"
-timedelta_query = 48
+timedelta_query = 133
 client = Spot()
 
 def recursive_forecast(model, data, look_back, n_steps):
@@ -46,7 +46,7 @@ def home():
     }
     df = pd.DataFrame(price_collection.find(btc_query))
     if df.empty:
-        return 'DataFrame is empty!'
+        return 'Binance DataFrame is empty!'
     else:
         df['x'] = df['open_time']
         df['h'] = pd.to_numeric(df['high'] )
@@ -64,7 +64,7 @@ def home():
 
     reddit_df = pd.DataFrame(reddit_collection.find(reddit_query))
     if reddit_df.empty:
-        return 'DataFrame is empty!'
+        return 'reddit DataFrame is empty!'
     else:
         reddit_df['created_utc'] = pd.to_datetime(reddit_df['created_utc'], unit='s')
         reddit_df['DateHour'] = reddit_df['created_utc'].dt.floor(freq='1min')
@@ -133,7 +133,6 @@ def home():
     predict_data =  merged_df['x'][look_back:].reset_index(drop=True)
     predict_data = pd.DataFrame(predict_data, columns=['x'])
     predict_data = predict_data.assign(y=pd.Series(predicted_prices).values)
-    # print(predict_data)
     coin_candlestick_data = merged_df[['x', 'o', 'h', 'l', 'c', 'volume']].to_dict(orient='records')
     coin_line_data = predict_data.to_dict(orient='records') 
     sentiment_data = merged_df[['x', 'sentiment']].rename(columns={"sentiment": "y"}).to_dict(orient='records')

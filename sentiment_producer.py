@@ -5,11 +5,11 @@ from kafka import KafkaProducer
 
 topic_name = 'reddit'
 reddit_config = {
-    'user_agent': 'example',
-    'client_id': 'example',
-    'client_secret': 'example',
-    'password': "example",
-    'username': "example"
+    'user_agent': 'test',
+    'client_id': 'SK33APXjmS-pVfsv_APmWg',
+    'client_secret': 'eWUVd7dLhMukZ9zJcpOgF78HT-jL0Q',
+    'password': "@Toilaai123",
+    'username': "khaihoan123"
 }
 subreddit_list = 'CryptoCurrency+CryptoMoonShots+CryptoMarkets+CryptocurrencyICO'
 # create topic
